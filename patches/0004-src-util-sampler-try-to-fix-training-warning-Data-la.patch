@@ -1,0 +1,26 @@
+From 4bdebf6e7e49277c9b654bd0de4ce7564c302a6f Mon Sep 17 00:00:00 2001
+From: qinhj <qinhj@lsec.cc.ac.cn>
+Date: Tue, 8 Jun 2021 12:58:54 +0800
+Subject: [PATCH 4/4] [src] util/sampler: try to fix training warning 'Data
+ layer prefetch queue empty'
+
+---
+ src/caffe/util/sampler.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/caffe/util/sampler.cpp b/src/caffe/util/sampler.cpp
+index 0709d778..348c991c 100644
+--- a/src/caffe/util/sampler.cpp
++++ b/src/caffe/util/sampler.cpp
+@@ -105,6 +105,8 @@ void SampleBBox(const Sampler& sampler, NormalizedBBox* sampled_bbox) {
+   // Figure out bbox dimension.
+   float bbox_width = scale * sqrt(aspect_ratio);
+   float bbox_height = scale / sqrt(aspect_ratio);
++  if (1. < bbox_width) bbox_width = 1.;
++  if (1. < bbox_height) bbox_height = 1.;
+ 
+   // Figure out top left coordinates.
+   float w_off, h_off;
+-- 
+2.17.1
+

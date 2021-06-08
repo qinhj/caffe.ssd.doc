@@ -1,0 +1,565 @@
+From 2a20e1fccbd144610c1d46af34598f13bb6a096b Mon Sep 17 00:00:00 2001
+From: qinhj <qinhj@lsec.cc.ac.cn>
+Date: Tue, 8 Jun 2021 10:28:10 +0800
+Subject: [PATCH 2/4] [examples] try to support python3 and add ArgumentParser
+
+---
+ examples/ssd/score_ssd_coco.py    | 15 ++++++++++-----
+ examples/ssd/score_ssd_pascal.py  | 14 +++++++++-----
+ examples/ssd/ssd_coco.py          | 13 +++++++++----
+ examples/ssd/ssd_detect.py        | 21 ++++++++++++---------
+ examples/ssd/ssd_ilsvrc.py        | 13 +++++++++----
+ examples/ssd/ssd_pascal.py        | 15 ++++++++++-----
+ examples/ssd/ssd_pascal_orig.py   | 13 +++++++++----
+ examples/ssd/ssd_pascal_resnet.py | 15 ++++++++++-----
+ examples/ssd/ssd_pascal_speed.py  | 13 +++++++++----
+ examples/ssd/ssd_pascal_video.py  |  2 +-
+ examples/ssd/ssd_pascal_webcam.py |  2 +-
+ examples/ssd/ssd_pascal_zf.py     | 13 +++++++++----
+ python/caffe/io.py                |  2 +-
+ python/caffe/model_libs.py        | 18 ++++++++++++------
+ 14 files changed, 111 insertions(+), 58 deletions(-)
+
+diff --git a/examples/ssd/score_ssd_coco.py b/examples/ssd/score_ssd_coco.py
+index 71c0ee04..79ed9dd4 100644
+--- a/examples/ssd/score_ssd_coco.py
++++ b/examples/ssd/score_ssd_coco.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # Notice: we do evaluation by setting the solver parameters approximately.
+ # The reason that we do not use ./build/tools/caffe test ... is because it
+@@ -323,7 +325,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 7 / 100.] + min_sizes
+@@ -342,14 +344,17 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # The number does not matter since we do not do training with this script.
+ batch_size = 1
+ accum_batch_size = 1
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+diff --git a/examples/ssd/score_ssd_pascal.py b/examples/ssd/score_ssd_pascal.py
+index 76fc10c8..321f70f5 100644
+--- a/examples/ssd/score_ssd_pascal.py
++++ b/examples/ssd/score_ssd_pascal.py
+@@ -64,6 +64,7 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+ 
+     return net
+ 
++args = ssd_parse_args()
+ 
+ ### Modify the following parameters accordingly ###
+ # Notice: we do evaluation by setting the solver parameters approximately.
+@@ -321,7 +322,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -340,14 +341,17 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # The number does not matter since we do not do training with this script.
+ batch_size = 1
+ accum_batch_size = 1
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+diff --git a/examples/ssd/ssd_coco.py b/examples/ssd/ssd_coco.py
+index 201bd252..5205e4f2 100644
+--- a/examples/ssd/ssd_coco.py
++++ b/examples/ssd/ssd_coco.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -312,7 +314,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 7 / 100.] + min_sizes
+@@ -331,9 +333,12 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = 32
+diff --git a/examples/ssd/ssd_detect.py b/examples/ssd/ssd_detect.py
+index 945930be..38505d3a 100644
+--- a/examples/ssd/ssd_detect.py
++++ b/examples/ssd/ssd_detect.py
+@@ -26,7 +26,7 @@ def get_labelname(labelmap, labels):
+         labels = [labels]
+     for label in labels:
+         found = False
+-        for i in xrange(0, num_labels):
++        for i in range(0, num_labels):
+             if label == labelmap.item[i].label:
+                 found = True
+                 labelnames.append(labelmap.item[i].display_name)
+@@ -36,8 +36,11 @@ def get_labelname(labelmap, labels):
+ 
+ class CaffeDetection:
+     def __init__(self, gpu_id, model_def, model_weights, image_resize, labelmap_file):
+-        caffe.set_device(gpu_id)
+-        caffe.set_mode_gpu()
++        if gpu_id < 0:
++            caffe.set_mode_cpu()
++        else:
++            caffe.set_device(gpu_id)
++            caffe.set_mode_gpu()
+ 
+         self.image_resize = image_resize
+         # Load the net in the test phase for inference, and configure input preprocessing.
+@@ -94,7 +97,7 @@ class CaffeDetection:
+         top_ymax = det_ymax[top_indices]
+ 
+         result = []
+-        for i in xrange(min(topn, top_conf.shape[0])):
++        for i in range(min(topn, top_conf.shape[0])):
+             xmin = top_xmin[i] # xmin = int(round(top_xmin[i] * image.shape[1]))
+             ymin = top_ymin[i] # ymin = int(round(top_ymin[i] * image.shape[0]))
+             xmax = top_xmax[i] # xmax = int(round(top_xmax[i] * image.shape[1]))
+@@ -111,12 +114,12 @@ def main(args):
+                                args.model_def, args.model_weights,
+                                args.image_resize, args.labelmap_file)
+     result = detection.detect(args.image_file)
+-    print result
++    print(result)
+ 
+     img = Image.open(args.image_file)
+     draw = ImageDraw.Draw(img)
+     width, height = img.size
+-    print width, height
++    print(width, height)
+     for item in result:
+         xmin = int(round(item[0] * width))
+         ymin = int(round(item[1] * height))
+@@ -124,9 +127,9 @@ def main(args):
+         ymax = int(round(item[3] * height))
+         draw.rectangle([xmin, ymin, xmax, ymax], outline=(255, 0, 0))
+         draw.text([xmin, ymin], item[-1] + str(item[-2]), (0, 0, 255))
+-        print item
+-        print [xmin, ymin, xmax, ymax]
+-        print [xmin, ymin], item[-1]
++        print("item:", item)
++        print("bbox:", xmin, ymin, xmax, ymax)
++        print([xmin, ymin], item[-1])
+     img.save('detect_result.jpg')
+ 
+ 
+diff --git a/examples/ssd/ssd_ilsvrc.py b/examples/ssd/ssd_ilsvrc.py
+index 1fa0a8e8..1adaa387 100644
+--- a/examples/ssd/ssd_ilsvrc.py
++++ b/examples/ssd/ssd_ilsvrc.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -312,7 +314,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -331,9 +333,12 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = 32
+diff --git a/examples/ssd/ssd_pascal.py b/examples/ssd/ssd_pascal.py
+index 62129ba8..245be84d 100644
+--- a/examples/ssd/ssd_pascal.py
++++ b/examples/ssd/ssd_pascal.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -310,7 +312,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -329,14 +331,17 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = 32
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+diff --git a/examples/ssd/ssd_pascal_orig.py b/examples/ssd/ssd_pascal_orig.py
+index 1d8ef171..778a3008 100644
+--- a/examples/ssd/ssd_pascal_orig.py
++++ b/examples/ssd/ssd_pascal_orig.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -315,7 +317,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -334,9 +336,12 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = num_gpus
+diff --git a/examples/ssd/ssd_pascal_resnet.py b/examples/ssd/ssd_pascal_resnet.py
+index 812f0d87..ccc8945c 100644
+--- a/examples/ssd/ssd_pascal_resnet.py
++++ b/examples/ssd/ssd_pascal_resnet.py
+@@ -28,7 +28,7 @@ def AddExtraLayers(net, use_batchnorm=True):
+     ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 512, 3, 1, 2)
+     from_layer = out_layer
+ 
+-    for i in xrange(2, 4):
++    for i in range(2, 4):
+       out_layer = "{}/conv{}_1".format(last_layer, i)
+       ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 1, 0, 1)
+       from_layer = out_layer
+@@ -44,6 +44,8 @@ def AddExtraLayers(net, use_batchnorm=True):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -262,7 +264,7 @@ max_ratio = 95
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -278,9 +280,12 @@ clip = True
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = 32
+diff --git a/examples/ssd/ssd_pascal_speed.py b/examples/ssd/ssd_pascal_speed.py
+index 3a2d2438..d408c851 100644
+--- a/examples/ssd/ssd_pascal_speed.py
++++ b/examples/ssd/ssd_pascal_speed.py
+@@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # Notice: we do evaluation by setting the solver parameters approximately.
+ # The reason that we do not use ./build/tools/caffe test ... is because it
+@@ -321,7 +323,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -340,9 +342,12 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # The number does not matter since we do not do training with this script.
+ batch_size = 1
+diff --git a/examples/ssd/ssd_pascal_video.py b/examples/ssd/ssd_pascal_video.py
+index 8053bed3..17479e5c 100644
+--- a/examples/ssd/ssd_pascal_video.py
++++ b/examples/ssd/ssd_pascal_video.py
+@@ -203,7 +203,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+diff --git a/examples/ssd/ssd_pascal_webcam.py b/examples/ssd/ssd_pascal_webcam.py
+index d292296f..06a8a8c1 100644
+--- a/examples/ssd/ssd_pascal_webcam.py
++++ b/examples/ssd/ssd_pascal_webcam.py
+@@ -206,7 +206,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+diff --git a/examples/ssd/ssd_pascal_zf.py b/examples/ssd/ssd_pascal_zf.py
+index 516860df..e453f37a 100644
+--- a/examples/ssd/ssd_pascal_zf.py
++++ b/examples/ssd/ssd_pascal_zf.py
+@@ -70,6 +70,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+     return net
+ 
+ 
++args = ssd_parse_args()
++
+ ### Modify the following parameters accordingly ###
+ # The directory which contains the caffe code.
+ # We assume you are running the script at the CAFFE_ROOT.
+@@ -315,7 +317,7 @@ max_ratio = 90
+ step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
+ min_sizes = []
+ max_sizes = []
+-for ratio in xrange(min_ratio, max_ratio + 1, step):
++for ratio in range(min_ratio, max_ratio + 1, step):
+   min_sizes.append(min_dim * ratio / 100.)
+   max_sizes.append(min_dim * (ratio + step) / 100.)
+ min_sizes = [min_dim * 10 / 100.] + min_sizes
+@@ -334,9 +336,12 @@ clip = False
+ 
+ # Solver parameters.
+ # Defining which GPUs to use.
+-gpus = "0,1,2,3"
+-gpulist = gpus.split(",")
+-num_gpus = len(gpulist)
++if "" == args.device or "cpu" == args.device:
++    num_gpus = 0
++else:
++    gpus = "0"
++    gpulist = gpus.split(",")
++    num_gpus = len(gpulist)
+ 
+ # Divide the mini-batch to different GPUs.
+ batch_size = 32
+diff --git a/python/caffe/io.py b/python/caffe/io.py
+index e1759beb..8fe36d4f 100644
+--- a/python/caffe/io.py
++++ b/python/caffe/io.py
+@@ -293,7 +293,7 @@ def load_image(filename, color=True):
+         of size (H x W x 3) in RGB or
+         of size (H x W x 1) in grayscale.
+     """
+-    img = skimage.img_as_float(skimage.io.imread(filename, as_grey=not color)).astype(np.float32)
++    img = skimage.img_as_float(skimage.io.imread(filename, as_gray=not color)).astype(np.float32)
+     if img.ndim == 2:
+         img = img[:, :, np.newaxis]
+         if color:
+diff --git a/python/caffe/model_libs.py b/python/caffe/model_libs.py
+index 84c8bf27..b760db74 100644
+--- a/python/caffe/model_libs.py
++++ b/python/caffe/model_libs.py
+@@ -1,10 +1,16 @@
+ import os
++import argparse
+ 
+ import caffe
+ from caffe import layers as L
+ from caffe import params as P
+ from caffe.proto import caffe_pb2
+ 
++def ssd_parse_args():
++    parser = argparse.ArgumentParser()
++    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
++    return parser.parse_args()
++
+ def check_if_exist(path):
+     return os.path.exists(path)
+ 
+@@ -13,17 +19,17 @@ def make_if_not_exist(path):
+         os.makedirs(path)
+ 
+ def UnpackVariable(var, num):
+-  assert len > 0
++  #assert len > 0
+   if type(var) is list and len(var) == num:
+     return var
+   else:
+     ret = []
+     if type(var) is list:
+       assert len(var) == 1
+-      for i in xrange(0, num):
++      for i in range(0, num):
+         ret.append(var[0])
+     else:
+-      for i in xrange(0, num):
++      for i in range(0, num):
+         ret.append(var)
+     return ret
+ 
+@@ -153,7 +159,7 @@ def ResBody(net, from_layer, block_name, out2a, out2b, out2c, stride, use_branch
+         bn_prefix=bn_prefix, bn_postfix=bn_postfix,
+         scale_prefix=scale_prefix, scale_postfix=scale_postfix, **bn_param)
+   else:
+-    pad = int((3 + (dilation - 1) * 2) - 1) / 2
++    pad = int((3 + (dilation - 1) * 2) - 1) // 2
+     ConvBNLayer(net, out_name, branch_name, use_bn=True, use_relu=True,
+         num_output=out2b, kernel_size=3, pad=pad, stride=1, use_scale=use_scale,
+         dilation=dilation, conv_prefix=conv_prefix, conv_postfix=conv_postfix,
+@@ -372,7 +378,7 @@ def VGGNetBody(net, from_layer, need_fc=True, fully_conv=False, reduced=False,
+             dilation = 1
+ 
+     kernel_size = 3
+-    pad = int((kernel_size + (dilation - 1) * (kernel_size - 1)) - 1) / 2
++    pad = int((kernel_size + (dilation - 1) * (kernel_size - 1)) - 1) // 2
+     net.conv5_1 = L.Convolution(net[name], num_output=512, pad=pad, kernel_size=kernel_size, dilation=dilation, **kwargs)
+     net.relu5_1 = L.ReLU(net.conv5_1, in_place=True)
+     net.conv5_2 = L.Convolution(net.relu5_1, num_output=512, pad=pad, kernel_size=kernel_size, dilation=dilation, **kwargs)
+@@ -414,7 +420,7 @@ def VGGNetBody(net, from_layer, need_fc=True, fully_conv=False, reduced=False,
+                 else:
+                     kernel_size = 7
+                     num_output = 4096
+-            pad = int((kernel_size + (dilation - 1) * (kernel_size - 1)) - 1) / 2
++            pad = int((kernel_size + (dilation - 1) * (kernel_size - 1)) - 1) // 2
+             net.fc6 = L.Convolution(net[name], num_output=num_output, pad=pad, kernel_size=kernel_size, dilation=dilation, **kwargs)
+ 
+             net.relu6 = L.ReLU(net.fc6, in_place=True)
+-- 
+2.17.1
+

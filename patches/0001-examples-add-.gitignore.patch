@@ -1,0 +1,20 @@
+From 249d758d60410f31b1ec7b4a87333d77accebe2a Mon Sep 17 00:00:00 2001
+From: qinhj <qinhj@lsec.cc.ac.cn>
+Date: Tue, 8 Jun 2021 10:28:21 +0800
+Subject: [PATCH 1/4] [examples] add .gitignore
+
+---
+ examples/.gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 examples/.gitignore
+
+diff --git a/examples/.gitignore b/examples/.gitignore
+new file mode 100644
+index 00000000..7676724a
+--- /dev/null
++++ b/examples/.gitignore
+@@ -0,0 +1 @@
++MobileNet-SSD
+-- 
+2.17.1
+
