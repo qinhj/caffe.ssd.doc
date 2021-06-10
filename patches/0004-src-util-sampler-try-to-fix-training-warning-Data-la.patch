@@ -1,7 +1,7 @@
-From 4bdebf6e7e49277c9b654bd0de4ce7564c302a6f Mon Sep 17 00:00:00 2001
+From 99d1342c8e8ff6f37ee08bba054e29bc421a5b73 Mon Sep 17 00:00:00 2001
 From: qinhj <qinhj@lsec.cc.ac.cn>
 Date: Tue, 8 Jun 2021 12:58:54 +0800
-Subject: [PATCH 4/4] [src] util/sampler: try to fix training warning 'Data
+Subject: [PATCH 4/5] [src] util/sampler: try to fix training warning 'Data
  layer prefetch queue empty'
 
 ---

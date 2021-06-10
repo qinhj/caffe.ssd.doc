@@ -1,24 +1,24 @@
-From 2a20e1fccbd144610c1d46af34598f13bb6a096b Mon Sep 17 00:00:00 2001
+From 35ffab059d7841bfd76cf96a77493521f4ef23f9 Mon Sep 17 00:00:00 2001
 From: qinhj <qinhj@lsec.cc.ac.cn>
 Date: Tue, 8 Jun 2021 10:28:10 +0800
-Subject: [PATCH 2/4] [examples] try to support python3 and add ArgumentParser
+Subject: [PATCH 2/5] [examples] try to support python3 and add ArgumentParser
 
 ---
  examples/ssd/score_ssd_coco.py    | 15 ++++++++++-----
  examples/ssd/score_ssd_pascal.py  | 14 +++++++++-----
- examples/ssd/ssd_coco.py          | 13 +++++++++----
+ examples/ssd/ssd_coco.py          | 17 +++++++++++------
  examples/ssd/ssd_detect.py        | 21 ++++++++++++---------
- examples/ssd/ssd_ilsvrc.py        | 13 +++++++++----
+ examples/ssd/ssd_ilsvrc.py        | 17 +++++++++++------
  examples/ssd/ssd_pascal.py        | 15 ++++++++++-----
- examples/ssd/ssd_pascal_orig.py   | 13 +++++++++----
- examples/ssd/ssd_pascal_resnet.py | 15 ++++++++++-----
- examples/ssd/ssd_pascal_speed.py  | 13 +++++++++----
+ examples/ssd/ssd_pascal_orig.py   | 21 ++++++++++++++-------
+ examples/ssd/ssd_pascal_resnet.py | 19 ++++++++++++-------
+ examples/ssd/ssd_pascal_speed.py  | 15 ++++++++++-----
  examples/ssd/ssd_pascal_video.py  |  2 +-
  examples/ssd/ssd_pascal_webcam.py |  2 +-
- examples/ssd/ssd_pascal_zf.py     | 13 +++++++++----
+ examples/ssd/ssd_pascal_zf.py     | 15 ++++++++++-----
  python/caffe/io.py                |  2 +-
  python/caffe/model_libs.py        | 18 ++++++++++++------
- 14 files changed, 111 insertions(+), 58 deletions(-)
+ 14 files changed, 124 insertions(+), 69 deletions(-)
 
 diff --git a/examples/ssd/score_ssd_coco.py b/examples/ssd/score_ssd_coco.py
 index 71c0ee04..79ed9dd4 100644
@@ -108,7 +108,7 @@ index 76fc10c8..321f70f5 100644
  device_id = 0
  batch_size_per_device = batch_size
 diff --git a/examples/ssd/ssd_coco.py b/examples/ssd/ssd_coco.py
-index 201bd252..5205e4f2 100644
+index 201bd252..9497c7cb 100644
 --- a/examples/ssd/ssd_coco.py
 +++ b/examples/ssd/ssd_coco.py
 @@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
@@ -129,7 +129,7 @@ index 201bd252..5205e4f2 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 7 / 100.] + min_sizes
-@@ -331,9 +333,12 @@ clip = False
+@@ -331,14 +333,17 @@ clip = False
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -145,6 +145,21 @@ index 201bd252..5205e4f2 100644
  
  # Divide the mini-batch to different GPUs.
  batch_size = 32
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+@@ -360,7 +365,7 @@ elif normalization_mode == P.Loss.FULL:
+ # Evaluate on whole test set.
+ num_test_image = 5000
+ test_batch_size = 8
+-test_iter = num_test_image / test_batch_size
++test_iter = num_test_image // test_batch_size
+ 
+ solver_param = {
+     # Train parameters
 diff --git a/examples/ssd/ssd_detect.py b/examples/ssd/ssd_detect.py
 index 945930be..38505d3a 100644
 --- a/examples/ssd/ssd_detect.py
@@ -210,7 +225,7 @@ index 945930be..38505d3a 100644
  
  
 diff --git a/examples/ssd/ssd_ilsvrc.py b/examples/ssd/ssd_ilsvrc.py
-index 1fa0a8e8..1adaa387 100644
+index 1fa0a8e8..43a79512 100644
 --- a/examples/ssd/ssd_ilsvrc.py
 +++ b/examples/ssd/ssd_ilsvrc.py
 @@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
@@ -231,7 +246,7 @@ index 1fa0a8e8..1adaa387 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
-@@ -331,9 +333,12 @@ clip = False
+@@ -331,14 +333,17 @@ clip = False
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -247,6 +262,21 @@ index 1fa0a8e8..1adaa387 100644
  
  # Divide the mini-batch to different GPUs.
  batch_size = 32
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+@@ -360,7 +365,7 @@ elif normalization_mode == P.Loss.FULL:
+ # Evaluate on whole test set.
+ num_test_image = 9917
+ test_batch_size = 1
+-test_iter = num_test_image / test_batch_size
++test_iter = num_test_image // test_batch_size
+ 
+ solver_param = {
+     # Train parameters
 diff --git a/examples/ssd/ssd_pascal.py b/examples/ssd/ssd_pascal.py
 index 62129ba8..245be84d 100644
 --- a/examples/ssd/ssd_pascal.py
@@ -292,7 +322,7 @@ index 62129ba8..245be84d 100644
  device_id = 0
  batch_size_per_device = batch_size
 diff --git a/examples/ssd/ssd_pascal_orig.py b/examples/ssd/ssd_pascal_orig.py
-index 1d8ef171..778a3008 100644
+index 1d8ef171..19def1fb 100644
 --- a/examples/ssd/ssd_pascal_orig.py
 +++ b/examples/ssd/ssd_pascal_orig.py
 @@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
@@ -313,7 +343,7 @@ index 1d8ef171..778a3008 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
-@@ -334,9 +336,12 @@ clip = False
+@@ -334,14 +336,19 @@ clip = False
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -322,15 +352,33 @@ index 1d8ef171..778a3008 100644
 -num_gpus = len(gpulist)
 +if "" == args.device or "cpu" == args.device:
 +    num_gpus = 0
++    batch_size = 1
++    iter_size = 1
 +else:
 +    gpus = "0"
 +    gpulist = gpus.split(",")
 +    num_gpus = len(gpulist)
++    batch_size = num_gpus
  
  # Divide the mini-batch to different GPUs.
- batch_size = num_gpus
+-batch_size = num_gpus
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++#iter_size = accum_batch_size / batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+@@ -363,7 +370,7 @@ elif normalization_mode == P.Loss.FULL:
+ # Evaluate on whole test set.
+ num_test_image = 4952
+ test_batch_size = 1
+-test_iter = num_test_image / test_batch_size
++test_iter = num_test_image // test_batch_size
+ 
+ solver_param = {
+     # Train parameters
 diff --git a/examples/ssd/ssd_pascal_resnet.py b/examples/ssd/ssd_pascal_resnet.py
-index 812f0d87..ccc8945c 100644
+index 812f0d87..be244aa2 100644
 --- a/examples/ssd/ssd_pascal_resnet.py
 +++ b/examples/ssd/ssd_pascal_resnet.py
 @@ -28,7 +28,7 @@ def AddExtraLayers(net, use_batchnorm=True):
@@ -360,7 +408,7 @@ index 812f0d87..ccc8945c 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
-@@ -278,9 +280,12 @@ clip = True
+@@ -278,14 +280,17 @@ clip = True
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -376,8 +424,23 @@ index 812f0d87..ccc8945c 100644
  
  # Divide the mini-batch to different GPUs.
  batch_size = 32
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
+@@ -307,7 +312,7 @@ elif normalization_mode == P.Loss.FULL:
+ # Evaluate on whole test set.
+ num_test_image = 4952
+ test_batch_size = 1
+-test_iter = num_test_image / test_batch_size
++test_iter = num_test_image // test_batch_size
+ 
+ solver_param = {
+     # Train parameters
 diff --git a/examples/ssd/ssd_pascal_speed.py b/examples/ssd/ssd_pascal_speed.py
-index 3a2d2438..d408c851 100644
+index 3a2d2438..61d29e1d 100644
 --- a/examples/ssd/ssd_pascal_speed.py
 +++ b/examples/ssd/ssd_pascal_speed.py
 @@ -65,6 +65,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
@@ -398,7 +461,7 @@ index 3a2d2438..d408c851 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
-@@ -340,9 +342,12 @@ clip = False
+@@ -340,14 +342,17 @@ clip = False
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -414,6 +477,12 @@ index 3a2d2438..d408c851 100644
  
  # The number does not matter since we do not do training with this script.
  batch_size = 1
+ accum_batch_size = 1
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
 diff --git a/examples/ssd/ssd_pascal_video.py b/examples/ssd/ssd_pascal_video.py
 index 8053bed3..17479e5c 100644
 --- a/examples/ssd/ssd_pascal_video.py
@@ -441,7 +510,7 @@ index d292296f..06a8a8c1 100644
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
 diff --git a/examples/ssd/ssd_pascal_zf.py b/examples/ssd/ssd_pascal_zf.py
-index 516860df..e453f37a 100644
+index 516860df..8c349e73 100644
 --- a/examples/ssd/ssd_pascal_zf.py
 +++ b/examples/ssd/ssd_pascal_zf.py
 @@ -70,6 +70,8 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
@@ -462,7 +531,7 @@ index 516860df..e453f37a 100644
    min_sizes.append(min_dim * ratio / 100.)
    max_sizes.append(min_dim * (ratio + step) / 100.)
  min_sizes = [min_dim * 10 / 100.] + min_sizes
-@@ -334,9 +336,12 @@ clip = False
+@@ -334,14 +336,17 @@ clip = False
  
  # Solver parameters.
  # Defining which GPUs to use.
@@ -478,6 +547,12 @@ index 516860df..e453f37a 100644
  
  # Divide the mini-batch to different GPUs.
  batch_size = 32
+ accum_batch_size = 32
+-iter_size = accum_batch_size / batch_size
++iter_size = accum_batch_size // batch_size
+ solver_mode = P.Solver.CPU
+ device_id = 0
+ batch_size_per_device = batch_size
 diff --git a/python/caffe/io.py b/python/caffe/io.py
 index e1759beb..8fe36d4f 100644
 --- a/python/caffe/io.py
