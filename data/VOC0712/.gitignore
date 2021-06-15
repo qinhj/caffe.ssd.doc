@@ -1,2 +1,4 @@
+## outputs of create_list.sh
 trainval.txt
 test.txt
+test_name_size.txt
