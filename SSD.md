@@ -9,7 +9,10 @@ re-train the model with ssd_pascal_orig.py .
 Similar issues:
 [inference on large image](https://github.com/weiliu89/caffe/issues/886)
 
-2. ...
+2. For specify task, we may need to re-design the anchor box. E.g. with pedestrian detection,
+the anchor boxes is mostly narrow.
+
+3. double free or ... for ssd_pascal_orig.py;
 ```
 
 ## Quick Start ##
@@ -62,6 +65,20 @@ $ ./data/VOC0712/create_list.sh
 $ ./data/VOC0712/create_data.sh
 ```
 
+## Quick Dataset(e.g. 3 of 20 classes in voc dataset) ##
+```
+## extract target classes from voc dataset
+$ python voc_extract.py --dataset $HOME/data --classes cat,dog,person
+## create labelmap.prototxt
+$ cp labelmap.prototxt.example labelmap.prototxt # 0: background; 1: cat; 2: dog; 3: person
+## create train/test/trainval.txt
+$ create_list.sh
+## create lmdb files
+$ create_data.sh
+## check lmdb files
+$ python lmdb_visual.py
+```
+
 ## Train/Eval/Detect ##
 ```
 ## Train
@@ -73,6 +90,8 @@ $ ./data/VOC0712/create_data.sh
 ##   - $HOME/data/VOCdevkit/results/VOC2007/SSD_300x300/
 ## It should reach 77.* mAP at 120k iterations.
 $ python examples/ssd/ssd_pascal.py
+* Note:
+1) Before training with customer dataset, one may need to update the "num_test_image" in py script;
 
 ## Eval
 ## If you would like to test a model you trained, you can do:
@@ -224,5 +243,7 @@ cafe/python/caffe/model_libs.py
 cafe/src/caffe/layers/prior_box_layer.cpp
 cafe/src/caffe/layers/detection_output_layer.cpp
 cafe/src/caffe/test/test_prior_box_layer.cpp
+cafe/tools/convert_annoset.cpp
+cafe/tools/create_label_map.cpp
 ...
 ```
