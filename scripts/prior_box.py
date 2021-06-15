@@ -1,4 +1,6 @@
-﻿
+﻿#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 ## Note: The feature map size is totally depend on the input image size of the model.
 ## e.g. with input image size: 300x300, the featur maps of SSD are:
 feature_map = [
