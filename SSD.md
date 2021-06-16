@@ -15,27 +15,31 @@ the anchor boxes is mostly narrow.
 3. double free or ... for ssd_pascal_orig.py;
 ```
 
-## Quick Start ##
+## Quick Build ##
 ```
 * Plz review caffe/Readme.md first.
+Note: The Makefile.config.example in ssd branch is rather old, one may need to checkout the latest one
+in master branch(especially for cuda).
 
 ## clone source code
 $ git clone https://github.com/weiliu89/caffe.git
 $ cd caffe
 $ git checkout ssd
 
-## env var settings(for smoke test)
+## env var settings(necessary)
 $ export CAFFE_ROOT=$HOME/desktop/caffe/
 $ export PYTHONPATH=$CAFFE_ROOT/python:$PYTHONPATH
+## or just source env.rc
+$ source env.rc
 
 ## quick make && test
 $ cd $CAFFE_ROOT
 $ cp Makefile.config.example Makefile.config
 $ vim Makefile.config # e.g. caffe/Makefile.config.cpu.miniconda3
 $ make -j`nproc`
-$ make py
 $ make test -j`nproc`
 $ make runtest -j`nproc` # optional
+$ make py
 ```
 
 ## Quick Preparation ##
@@ -89,7 +93,7 @@ $ python lmdb_visual.py
 ## and save temporary evaluation results in:
 ##   - $HOME/data/VOCdevkit/results/VOC2007/SSD_300x300/
 ## It should reach 77.* mAP at 120k iterations.
-$ python examples/ssd/ssd_pascal.py
+$ python examples/ssd/ssd_pascal.py --device "0,1,2,3" # "cpu"
 * Note:
 1) Before training with customer dataset, one may need to update the "num_test_image" in py script;
 
